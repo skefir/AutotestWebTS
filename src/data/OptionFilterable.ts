@@ -1,5 +1,5 @@
 export interface OptionFilterable {
-    getTitle(): String
+    getTitle(): string
     
-    getAltTitle() :String 
+    getAltTitle() :string 
 }

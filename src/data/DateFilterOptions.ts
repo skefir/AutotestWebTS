@@ -16,8 +16,8 @@ export class DateFilterOptions implements OptionFilterable {
         this.dateFilterValue = dateFilterValue
     }
 
-    getTitle = (): String => this.dateFilterValue
-    getAltTitle = (): String => this.getTitle()
+    getTitle = (): string => this.dateFilterValue
+    getAltTitle = (): string => this.getTitle()
     
 
 }

@@ -6,7 +6,9 @@ export class CalendarListElements {
 
 
 
-    getCalendarRoot(): Locator { return this.page.locator("#calendarContainer") }
+    getCalendarRoot(): Locator {
+        return this.page.locator("#calendarContainer")
+    }
 
     getFilterArea(): Locator { return this.getCalendarRoot().locator("#economicCalendarFilter") }
 

@@ -1,3 +1,5 @@
 export * from "./OptionFilterable"
 export * from "./ImportanceFilterOption"
 export * from "./DateFilterOptions"
+export * from "./DataTableColumn"
+export * from "./CurrencyFilter"
