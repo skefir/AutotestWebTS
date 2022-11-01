@@ -2,6 +2,8 @@ import { test, expect, Page } from '@playwright/test';
 import { BasePage, CalendarListPage } from '../src/pages'
 import {CONFIG} from '../src/conf'
 import { Currencies, CurrencyFilter, DateFilterOptions, DateFilterValues } from '../src/data';
+import { Logger } from 'tslog';
+import { logToTransport } from '../src/utils';
 
 let addDelay = async (page) => {
     const client = await page.context().newCDPSession(page)
@@ -14,16 +16,35 @@ let addDelay = async (page) => {
     })
 }
 
+let log: Logger = new Logger()
+log.attachTransport(
+    {
+      silly: logToTransport,
+      debug: logToTransport,
+      trace: logToTransport,
+      info: logToTransport,
+      warn: logToTransport,
+      error: logToTransport,
+      fatal: logToTransport,
+    },
+    "debug"
+  );
+
 test.describe('Check calendar functional', () => {
     test('Check calendar filter', async ({ page }) => {
         await page.goto("https://www.mql5.com/en/economic-calendar")
         await page.waitForLoadState("domcontentloaded")
         let calendarListPage = new CalendarListPage(page)
-        let curSet = new Set<CurrencyFilter>([new CurrencyFilter(Currencies.CHF)])
+        let directions = new Set<string>(['east', 'west']);
+        log.error(`test0=${directions} size=${directions.size}`)
+        let curObj = new CurrencyFilter(Currencies.CHF)
+        log.error(`test1=${JSON.stringify(curObj)}`)
+        let curSet = new Set<CurrencyFilter>([curObj])
+        curSet.add(curObj)
+        log.error(`test2=${JSON.stringify(curSet)} has=${JSON.stringify([...curSet])}`)
         await calendarListPage.setCurrenciesFilter(curSet)
         await calendarListPage.setDateFilter(new DateFilterOptions(DateFilterValues.NEXT_MONTH))
-        await calendarListPage.setDateFilter(new DateFilterOptions(DateFilterValues.NEXT_WEEK))
-        await calendarListPage.setDateFilter(new DateFilterOptions(DateFilterValues.PREVIOUS_MONTH))
+        
         await page.screenshot({ path: 'posttest.png' });
     });
 });

@@ -25,8 +25,9 @@ export class CurrencyFilter implements OptionFilterable {
     readonly currency: Currencies
     constructor (currency: Currencies) {
         this.currency = currency;
+        
     }
-    getTitle = (): string => `${this.currency} - ${Currencies[this.currency]}`
-    getAltTitle = (): string => `${this.currency}, ${Currencies[this.currency]}`
+    getTitle = (): string => `${Object.keys(Currencies)[Object.values(Currencies).indexOf(this.currency)]} - ${this.currency}`
+    getAltTitle = (): string => `${Object.keys(Currencies)[Object.values(Currencies).indexOf(this.currency)]}, ${this.currency}`
     
 }

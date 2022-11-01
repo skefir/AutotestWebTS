@@ -32,7 +32,9 @@ export class CalendarListPage extends BasePage {
     }
 
     async setCurrenciesFilter(currenciesSet: Set<CurrencyFilter>) {
+        this.log.error(`setCurrenciesFilter=${JSON.stringify(currenciesSet)}`)
         await this.setFilterCheckboxGroup(this.calendarListHelper.getCurrenciesFilter(), currenciesSet)
+        await this.page.waitForLoadState("domcontentloaded")
     }
 
 }
