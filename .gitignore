@@ -106,3 +106,4 @@ dist
 /playwright-report/
 /playwright/.cache/
 /posttest.png
+/.vscode/
