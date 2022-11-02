@@ -49,18 +49,10 @@ export class BasePage {
     getCurrentPage = (): BasePage => this
 
     protected async setFilterOption(filterOptionElement: Locator) {
-        // await (await filterOptionElement.elementHandle()).waitForElementState("stable")
         await Promise.all([
-            //  this.page.waitForLoadState("domcontentloaded"),
             this.log.error(`setFilterOption = ${JSON.stringify(filterOptionElement)} `),
             this.basePageElements.getFilterOptionLabel(filterOptionElement).click({ force: true }),
-            //  this.page.waitForLoadState("domcontentloaded"),
-            // this.page.waitForNavigation(),
         ])
-
-        //    this.page.click(this.basePageElements.getFilterOptionLabel(filterOptionElement)., {force: true}) 
-        //    await (await filterOptionElement.elementHandle()).waitForElementState("stable")
-        //  await this.page.waitForNavigation()
     }
 
     protected async setFilterRadio(filterElement: Locator, option: OptionFilterable) {
@@ -97,38 +89,21 @@ export class BasePage {
         filterElement: Locator,
         optionSet: Set<O>
     ) {
-        let ind: number = 0;
+
         await Promise.all([
             (await locatorToArray(this.basePageElements.getFilterOptions(filterElement))).forEach(async e => {
-                ind = await this.checkAndClick<O>(e, optionSet, ind)
+                this.checkAndClick<O>(e, optionSet)
             })
         ])
 
-        // let filterElementArray = await locatorToArray(this.basePageElements.getFilterOptions(filterElement))
-
-
-        //     .forEach {
-        //         setFilterOptionCheckbox(
-        //             it.second,
-        //             isOptionContains(optionSet, elementHelper.getFilterOptionLabel(it.second).textContent() ?: "")
-        //         )
-        //     }
-        // return currentPage
     }
 
 
-    private async checkAndClick<O extends OptionFilterable>(e: Locator, optionSet: Set<O>, ind: number) {
+    private async checkAndClick<O extends OptionFilterable>(e: Locator, optionSet: Set<O>) {
+        this.setFilterOptionCheckbox(e, this.isOptionContains(optionSet, await e.textContent()))
+        //  await Promise.all([
+        //     await this.setFilterOptionCheckbox(e, this.isOptionContains(optionSet, await e.textContent())),
+        // ])
 
-        // await  this.page.waitForLoadState('domcontentloaded'),
-        // await this.setFilterOptionCheckbox(e, this.isOptionContains(optionSet, await e.textContent())),
-        // await this.page.waitForLoadState("domcontentloaded")
-        await Promise.all([
-            await this.page.waitForLoadState('domcontentloaded'),
-            // (await e.elementHandle()).waitForElementState("stable"),
-            
-            await this.setFilterOptionCheckbox(e, this.isOptionContains(optionSet, await e.textContent())),
-            await this.page.waitForLoadState("domcontentloaded")
-        ])
-        return ind + 1
     }
 } 

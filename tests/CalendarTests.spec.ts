@@ -32,6 +32,7 @@ log.attachTransport(
 
 test.describe('Check calendar functional', () => {
     test('Check calendar filter', async ({ page }) => {
+        await page.setViewportSize({ width: 2560, height: 1440 })
         await page.goto("https://www.mql5.com/en/economic-calendar")
         await page.waitForLoadState("domcontentloaded")
         let calendarListPage = new CalendarListPage(page)
@@ -44,7 +45,7 @@ test.describe('Check calendar functional', () => {
         log.error(`test2=${JSON.stringify(curSet)} has=${JSON.stringify([...curSet])}`)
         await calendarListPage.setCurrenciesFilter(curSet)
         await calendarListPage.setDateFilter(new DateFilterOptions(DateFilterValues.NEXT_MONTH))
-        
+        await page.waitForLoadState("networkidle")
         await page.screenshot({ path: 'posttest.png' });
     });
 });
