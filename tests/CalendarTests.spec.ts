@@ -45,6 +45,7 @@ test.describe('Check calendar functional', () => {
         log.error(`test2=${JSON.stringify(curSet)} has=${JSON.stringify([...curSet])}`)
         await calendarListPage.setCurrenciesFilter(curSet)
         await calendarListPage.setDateFilter(new DateFilterOptions(DateFilterValues.NEXT_MONTH))
+        await calendarListPage.enterToEventByNumber(1)
         await page.waitForLoadState("networkidle")
         await page.screenshot({ path: 'posttest.png' });
     });

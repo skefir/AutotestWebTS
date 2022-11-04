@@ -41,7 +41,7 @@ export class BasePage {
                 error: logToTransport,
                 fatal: logToTransport,
             },
-            "debug"
+            "info"
         );
 
     }
@@ -50,7 +50,7 @@ export class BasePage {
 
     protected async setFilterOption(filterOptionElement: Locator) {
         await Promise.all([
-            this.log.error(`setFilterOption = ${JSON.stringify(filterOptionElement)} `),
+            this.log.debug(`setFilterOption = ${JSON.stringify(filterOptionElement)} `),
             this.basePageElements.getFilterOptionLabel(filterOptionElement).click({ force: true }),
         ])
     }
@@ -64,7 +64,7 @@ export class BasePage {
     }
 
     protected isOptionContains<O extends OptionFilterable>(optionSet: Set<O>, labelOption: string): boolean {
-        this.log.error(`isOptionContains = ${JSON.stringify([...optionSet])} findOption =  ${labelOption}`)
+        this.log.debug(`isOptionContains = ${JSON.stringify([...optionSet])} findOption =  ${labelOption}`)
 
         return _.chain([...optionSet]).filter(e => {
             return e.getTitle() == labelOption || e.getAltTitle() == labelOption
@@ -77,7 +77,7 @@ export class BasePage {
 
     protected async setFilterOptionCheckbox(filterOptionElement: Locator, value: boolean) {
         let curVal = await this.isChecked(filterOptionElement)
-        this.log.error(`setFilterOptionCheckbox flag = ${curVal}`)
+        this.log.debug(`setFilterOptionCheckbox flag = ${curVal}`)
         if (value != curVal) {
             await this.setFilterOption(filterOptionElement)
         }
