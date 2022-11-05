@@ -1,7 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
-import { BasePage, CalendarListPage } from '../src/pages'
+import { BasePage, CalendarEventInfoPage, CalendarListPage } from '../src/pages'
 import {CONFIG} from '../src/conf'
-import { Currencies, CurrencyFilter, DateFilterOptions, DateFilterValues } from '../src/data';
+import { CalendarEventInfoTab, Currencies, CurrencyFilter, DateFilterOptions, DateFilterValues, EventInfoTab } from '../src/data';
 import { Logger } from 'tslog';
 import { logToTransport } from '../src/utils';
 
@@ -46,6 +46,8 @@ test.describe('Check calendar functional', () => {
         await calendarListPage.setCurrenciesFilter(curSet)
         await calendarListPage.setDateFilter(new DateFilterOptions(DateFilterValues.NEXT_MONTH))
         await calendarListPage.enterToEventByNumber(1)
+        let calendarEventInfoPage = new CalendarEventInfoPage(page)
+        await calendarEventInfoPage.goToTab(new CalendarEventInfoTab(EventInfoTab.HISTORY))
         await page.waitForLoadState("networkidle")
         await page.screenshot({ path: 'posttest.png' });
     });

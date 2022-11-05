@@ -53,11 +53,11 @@ export class DataTablePW<E extends DataTableColumn> {
     }
 
     async getRows() {
-        return locatorToArray(this.rootElement.locator(`div.${this.classPrefix}__item`))
+        return await locatorToArray(this.rootElement.locator(`div.${this.classPrefix}__item`))
     }
 
-    async getRowByNumber(rowNumber: number) {
-        return (await this.getRows())[rowNumber]
+    getRowByNumber(rowNumber: number) {
+        return this.rootElement.locator(`div.${this.classPrefix}__item:nth-child(${rowNumber})`)
     }
 
     async getColumn(rowElement: Locator, column: E) {
