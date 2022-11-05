@@ -2,7 +2,7 @@ import { Locator } from "@playwright/test"
 import * as _ from "lodash"
 import { Logger } from "tslog"
 import { DataTableColumn } from "../data"
-import { locatorToArray, logToTransport } from "../utils"
+import { locatorToArray, locatorToArraySyn, logToTransport } from "../utils"
 
 export class DataTablePW<E extends DataTableColumn> {
     protected rootElement: Locator
@@ -68,20 +68,60 @@ export class DataTablePW<E extends DataTableColumn> {
         return this.rootElement.locator("div[class*='table__bottom']")
     }
 
-    async getRowsOnPage(paginatorElement: Locator) {
-        await paginatorElement.click()
-        return _.chain(this.getRows())
+     protected async getRowsOnPage(paginatorElement: Locator) {
+        return await paginatorElement.click().then(async ()=> _.chain(await Promise.all([this.getRows()])))
+        
+        // return this.getRows().
+    }
+    protected async getRowsInPage(paginatorElement: Locator) {
+        return await paginatorElement.click().then(()=>this.getRows())
+        
         // return this.getRows().
     }
 
+    async getRowArray() {
+        const pageLocator = this.getBottomArea().locator("a")
+        const pageCount = await pageLocator.count()  
+        let pageArray = locatorToArraySyn(pageLocator, pageCount)
+        if(pageArray.length<1) {
+            pageArray.push(this.getBottomArea())
+        } 
+        return await Promise.all( _
+            .chain(pageArray)
+            // .sortBy( 'number' )
+            .flatMap(async aloc => await this.getRowsInPage(aloc))
+            .value())
+          
+    //     let res =  await Promise.all([ _.map([... await locatorToArray(this.getBottomArea().locator("a"))], 
+    //       async (aloc)=>await this.getRowsInPage(aloc))
+          
+
+    //         // let rswe = this.getRowsInPage(aloc).then((res)=>res)
+    //         // return rswe
+    //     //  })  
+    //     //     .map<Locator[]>((aloc) => this.getRowsInPage(aloc))
+    //     //     .value()
+    //     // return await Promise.all([ _.chain( locatorToArray(this.getBottomArea().locator("a")))
+    //     //     .map<Locator[]>((aloc) => this.getRowsInPage(aloc))
+    //     //     .value()
+    // ])
+    // return res;
+
+    }    
+
     async getRowStream() {
-        let pagerCollection = await locatorToArray(this.getBottomArea().locator("a"))
+        // let pagerCollection = await locatorToArray(this.getBottomArea().locator("a")).then(())
+        return locatorToArray(this.getBottomArea().locator("a")).then(async (pagerCollection)=>{
+            if (pagerCollection.length < 1) {
+                pagerCollection.push(this.getBottomArea())
+            }    
+            return await Promise.all([_.flatMap(pagerCollection, async (l) => await this.getRowsOnPage(l))])
+        })
+    
         //если страница 1 то колеция пуста добавляем туда 1 элемент страницы
 
-        if (pagerCollection.length < 1) {
-            pagerCollection.push(this.getBottomArea())
-        }
-        return _.flatMap(pagerCollection, (l) => this.getRowsOnPage(l))
+        
+        // return _.flatMap(pagerCollection, (l) => this.getRowsOnPage(l))
         // _.chain(locatorToArray(pagerCollection)).flatMap((l)=>this.getRowsOnPage(l))
         //      pagerCollection.sequence() else sequence { 0 to getBottomArea() }
         // //конвертируем поток пейджей в поток строк
