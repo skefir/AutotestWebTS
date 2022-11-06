@@ -54,6 +54,8 @@ export class CalendarEventInfoPage extends BasePage {
         await this.eventHistoryTable.getRowStream().then((locArr)=>_.chain(locArr).first().value().textContent().then((tx)=>this.log.error(`row text=${tx}`)))
     }    
 
-    
+    public async printLazyHistoryStreamLog() {
+        await this.eventHistoryTable.getRowStreamLodash().then((och)=>och[0].value().first().value().textContent().then((tx)=>this.log.error(`row text=${tx}`)))
+    }    
     
 }

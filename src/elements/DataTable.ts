@@ -1,8 +1,9 @@
 import { Locator } from "@playwright/test"
 import * as _ from "lodash"
+import { CollectionChain } from "lodash"
 import { Logger } from "tslog"
 import { DataTableColumn } from "../data"
-import { asyncFlatMap, locatorToArray, locatorToArraySyn, logToTransport } from "../utils"
+import { asyncFlatMap, asyncMap, locatorToArray, locatorToArrayAsync, locatorToArraySyn, locatorToChain, logToTransport } from "../utils"
 
 export class DataTablePW<E extends DataTableColumn> {
     protected rootElement: Locator
@@ -56,6 +57,17 @@ export class DataTablePW<E extends DataTableColumn> {
         return await locatorToArray(this.rootElement.locator(`div.${this.classPrefix}__item`))
     }
 
+    getRowsChain(rowCount:number) {
+        return locatorToChain(this.rootElement.locator(`div.${this.classPrefix}__item`), rowCount)
+    }
+
+   async getPageRows(paginatorElement: Locator) {
+      const loc = this.rootElement.locator(`div.${this.classPrefix}__item`)
+      return  loc.count().then((ec)=>locatorToArrayAsync(loc, ec))
+
+   }
+
+
     getRowByNumber(rowNumber: number) {
         return this.rootElement.locator(`div.${this.classPrefix}__item:nth-child(${rowNumber})`)
     }
@@ -73,11 +85,21 @@ export class DataTablePW<E extends DataTableColumn> {
 
         // return this.getRows().
     }
+    protected async getChainRowsInPage(paginatorElement: Locator) {
+         return await paginatorElement.click().then(() =>{ 
+            return this.rootElement.locator(`div.${this.classPrefix}__item`).count().then((ec)=>
+               this.getRowsChain(ec))
+        })
+
+        // return this.getRows().
+    }
+
     protected async getRowsInPage(paginatorElement: Locator) {
         return await paginatorElement.click().then(() => this.getRows())
 
         // return this.getRows().
     }
+
 
     async getRowArray() {
         const pageLocator = this.getBottomArea().locator("a")
@@ -126,7 +148,15 @@ export class DataTablePW<E extends DataTableColumn> {
         if (pageArray.length < 1) {
             pageArray.push(this.getBottomArea())
         }
-        return [Promise.all(_.map(pageArray, async aloc => await this.getRowsInPage(aloc)))]
+        return asyncMap(pageArray, async (loc)=>await this.getPageRows(loc))
+        // return (await asyncMap(pageArray, async (loc)=>await this.getChainRowsInPage(loc))).reduce((l, a)=>l.concat()))
+        // return asyncMap(pageArray, async (loc)=>await this.getChainRowsInPage(loc).then((ch)=>ch.reduce((l, a)=>l.concat(a), _.chain<Locator>([]))))
+        // return asyncMap(pageArray, async (loc)=>await this.getChainRowsInPage(loc).then((ch)=>ch.reduce((a, b, indx, myMappedCollection)=>a&b)))
+          
+        //  (a, b, indx, myMappedCollection) =>
+        //  return _.map(pageArray, async (loc)=>await this.getChainRowsInPage(loc)).reduce(async (l, a)=> await a.then((ar)=>l.concat(ar.value())), {} as  CollectionChain<Locator> )
+        // return asyncMap(pageArray, async (loc)=>await this.getChainRowsInPage(loc))
+        // return [Promise.all(_.map(pageArray, async aloc => await this.getChainRowsInPage(aloc)))]
 
     }    
 

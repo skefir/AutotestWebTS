@@ -48,7 +48,8 @@ test.describe('Check calendar functional', () => {
         await calendarListPage.enterToEventByNumber(1)
         let calendarEventInfoPage = new CalendarEventInfoPage(page)
         await calendarEventInfoPage.goToTab(new CalendarEventInfoTab(EventInfoTab.HISTORY))
-        await calendarEventInfoPage.printHistoryStreamLog()
+        // await calendarEventInfoPage.printHistoryStreamLog()
+        await calendarEventInfoPage.printLazyHistoryStreamLog()
         await page.waitForLoadState("networkidle")
         await page.screenshot({ path: 'posttest.png' });
     

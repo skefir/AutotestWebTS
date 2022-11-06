@@ -1,4 +1,5 @@
 import { Locator } from "@playwright/test";
+import * as _ from "lodash";
 import { result } from "lodash";
 
 export async function locatorToArray(locator: Locator) {
@@ -16,4 +17,13 @@ export function locatorToArraySyn(locator: Locator, elementsCount: number) {
         resArr.push(locator.nth(index));
     }
     return resArr
+}
+
+export function locatorToChain(locator: Locator, elementsCount: number) {
+    return _.chain(_.range(elementsCount)).map((i)=>locator.nth(i))
+
+}
+
+export async function locatorToArrayAsync(locator: Locator, elementsCount: number) {
+    return _.chain(_.range(elementsCount)).map((i)=>locator.nth(i))
 }
