@@ -44,12 +44,16 @@ export class CalendarEventInfoPage extends BasePage {
     }
 
     public async printHistoryToLog() {
-        // log.info("Получаем содержимое таблицы истории")
-      let hz =await this.eventHistoryTable.getRowArray().then((prom)=>{
-        // _.forEach([...prom], (lf)=>{})
-        this.log.error(`printHistoryToLog=${prom} + ${JSON.stringify(prom)}`)
-        // prom.forEach((e)=>e.textContent().then((tx)=>this.log.error(`row text=${tx}`)))
-    })
-    }    
+        await this.eventHistoryTable.getRowArray().then((prom)=>prom.first().value().then((rw)=>rw[0].textContent().then((tx=>this.log.error(`row text=${tx}`)))))
+
+    }   
+    // public async printHistoryToLog() {
+    //     // log.info("Получаем содержимое таблицы истории")
+    //   let hz =await this.eventHistoryTable.getRowArray().then((prom)=>{
+    //     // _.forEach([...prom], (lf)=>{})
+    //     this.log.error(`printHistoryToLog=${prom} + ${JSON.stringify(prom)}`)
+    //     // prom.forEach((e)=>e.textContent().then((tx)=>this.log.error(`row text=${tx}`)))
+    // })
+    // }    
 
 }

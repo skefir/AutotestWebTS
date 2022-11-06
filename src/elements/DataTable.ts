@@ -86,11 +86,11 @@ export class DataTablePW<E extends DataTableColumn> {
         if(pageArray.length<1) {
             pageArray.push(this.getBottomArea())
         } 
-        return await Promise.all( _
+        return _
             .chain(pageArray)
             // .sortBy( 'number' )
             .flatMap(async aloc => await this.getRowsInPage(aloc))
-            .value())
+            
           
     //     let res =  await Promise.all([ _.map([... await locatorToArray(this.getBottomArea().locator("a"))], 
     //       async (aloc)=>await this.getRowsInPage(aloc))
