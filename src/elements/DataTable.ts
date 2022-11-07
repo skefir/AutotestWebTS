@@ -2,13 +2,14 @@ import { Locator } from "@playwright/test"
 import * as _ from "lodash"
 import { Logger } from "tslog"
 import { DataTableColumn } from "../data"
-import { asyncFlatMap, locatorToArray, locatorToArraySyn, logToTransport } from "../utils"
+import { asyncFlatMap, asyncMap, locatorToArray, locatorToArraySyn, logToTransport } from "../utils"
 
 export class DataTablePW<E extends DataTableColumn> {
     protected rootElement: Locator
     protected classPrefix: string
     protected columns: Set<E>
     protected columnsNumbers: Map<string, number> = new Map()
+    protected initFlag: boolean = false
     readonly log: Logger = new Logger()
 
     constructor(rootElement: Locator,
@@ -31,24 +32,29 @@ export class DataTablePW<E extends DataTableColumn> {
         );
     }
 
-    protected async getColumnNumber(column: E): Promise<number> {
+    public async intiTable() {
+        if (!this.initFlag) {
+           await this.calculateColumnNumbers()
+           this.initFlag = true;
+        }   
+    }
+
+    protected getTableHeaders(): Locator {
+        return this.rootElement.locator(`.${this.classPrefix}__header div[class*=${this.classPrefix}__col]`)
+    }
+
+    protected async calculateColumnNumbers() {
+        const hedArray = await locatorToArray(this.getTableHeaders())
+        await Promise.all(hedArray.map((loc, index)=>new Promise<void>((resolve)=>loc.textContent().then((txtEl)=>{
+            this.columnsNumbers.set(txtEl.substring(0, txtEl.concat(",").indexOf(',')).trim(), index);
+            resolve()}))))
+
+    }    
+
+    protected  getColumnNumber(column: E): number {
         if (!this.columns.has(column)) {
-
-            throw new Error(`Illegal column - ${column}`)
+           throw new Error(`Illegal column - ${column}`)
         }
-        if (!this.columnsNumbers.has) {
-            // this.rootElement.locator(
-            //             `xpath=.//div[@class='${this.classPrefix}__header']` +
-            //                     `//div[contains(@class,'${this.classPrefix}__')` +
-            //                     ` and .//text()='${column.getTitle()}']/preceding-sibling::div`
-            //         ).count().then(res =>this.columnsNumbers.set(column, res + 1))
-            this.columnsNumbers.set(column.getTitle(), (await this.rootElement.locator(
-                `xpath=.//div[@class='${this.classPrefix}__header']` +
-                `//div[contains(@class,'${this.classPrefix}__')` +
-                ` and .//text()='${column.getTitle()}']/preceding-sibling::div`
-            ).count()) + 1)
-        }
-
         return this.columnsNumbers.get(column.getTitle())
     }
 
@@ -56,7 +62,8 @@ export class DataTablePW<E extends DataTableColumn> {
         return await locatorToArray(this.rootElement.locator(`div.${this.classPrefix}__item`))
     }
 
-    getRowByNumber(rowNumber: number) {
+    async getRowByNumber(rowNumber: number) {
+        await this.intiTable()
         return this.rootElement.locator(`div.${this.classPrefix}__item:nth-child(${rowNumber})`)
     }
 
@@ -70,56 +77,25 @@ export class DataTablePW<E extends DataTableColumn> {
 
     protected async getRowsOnPage(paginatorElement: Locator) {
         return await paginatorElement.click().then(async () => _.chain(await Promise.all([this.getRows()])))
-
-        // return this.getRows().
     }
     protected async getRowsInPage(paginatorElement: Locator) {
         return await paginatorElement.click().then(() => this.getRows())
-
-        // return this.getRows().
-    }
-
-    async getRowArray() {
-        const pageLocator = this.getBottomArea().locator("a")
-        const pageCount = await pageLocator.count()
-        let pageArray = locatorToArraySyn(pageLocator, pageCount)
-        if (pageArray.length < 1) {
-            pageArray.push(this.getBottomArea())
-        }
-        return _
-            .chain(pageArray)
-                .flatMap(async aloc => await this.getRowsInPage(aloc))
-
-
-        //     let res =  await Promise.all([ _.map([... await locatorToArray(this.getBottomArea().locator("a"))], 
-        //       async (aloc)=>await this.getRowsInPage(aloc))
-
-
-        //         // let rswe = this.getRowsInPage(aloc).then((res)=>res)
-        //         // return rswe
-        //     //  })  
-        //     //     .map<Locator[]>((aloc) => this.getRowsInPage(aloc))
-        //     //     .value()
-        //     // return await Promise.all([ _.chain( locatorToArray(this.getBottomArea().locator("a")))
-        //     //     .map<Locator[]>((aloc) => this.getRowsInPage(aloc))
-        //     //     .value()
-        // ])
-        // return res;
-
     }
 
     async getRowStream() {
+        await this.intiTable()
         const pageLocator = this.getBottomArea().locator("a")
         const pageCount = await pageLocator.count()
         let pageArray = locatorToArraySyn(pageLocator, pageCount)
         if (pageArray.length < 1) {
             pageArray.push(this.getBottomArea())
         }
-        return asyncFlatMap(pageArray, async (loc)=>await this.getRowsInPage(loc))
-    
+        return asyncFlatMap(pageArray, async (loc) => await this.getRowsInPage(loc))
+
     }
 
     async getRowStreamLodash() {
+        await this.intiTable()
         const pageLocator = this.getBottomArea().locator("a")
         const pageCount = await pageLocator.count()
         let pageArray = locatorToArraySyn(pageLocator, pageCount)
@@ -128,20 +104,15 @@ export class DataTablePW<E extends DataTableColumn> {
         }
         return [Promise.all(_.map(pageArray, async aloc => await this.getRowsInPage(aloc)))]
 
-    }    
-
-    async extractColumns(rowElement: Locator, columnsSet: Set<E>) {
-        let rowColumns = await locatorToArray(rowElement.locator("div[class*='${classPrefix}__']"))
-        // let rowColumns = rowElement.locator("div[class*='${classPrefix}__']")
-        // return _.map(columnsSet, (l) =>  (await rowColumns.nth((await this.getColumnNumber(l)) - 1)).textContent())
-        //  _.map(columnsSet, (l)=>this.getColumnNumber(l))
-        //    return _.map([...columnsSet], async (l)=>{ return {key: l.getTitle, val: rowColumns[await this.getColumnNumber(l)-1].textContent()}}).
-        // return _.map([...columnsSet], async (l)=>{ return  {key: l, val: (await rowColumns[await this.getColumnNumber(l)-1].textContent())}}).values()
-        return _.reduce([...columnsSet], async (l, a) => l[a.getTitle()] = rowColumns[await this.getColumnNumber(a) - 1], {})
-        //  .reduce(async (p, c, a)=>a.push[(await c).key]=(await c).val,{})
-
-
     }
 
-    
+    extractColumns(rowElement: Locator, columnsSet: Set<E>) {
+        if (!this.initFlag) {
+            throw new Error(`Table not initilaized`) 
+        }
+        let rowColumns = rowElement.locator("div[class*='${classPrefix}__']")
+        return _.reduce([...columnsSet], (l, a) => l.set(a.getTitle(), rowColumns.nth(this.getColumnNumber(a) - 1)), new Map<string, Locator>)
+    }
+
+
 }

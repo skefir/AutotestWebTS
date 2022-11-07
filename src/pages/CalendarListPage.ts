@@ -1,6 +1,6 @@
 import { Page, Locator } from "@playwright/test"
 import { CalendarListElements, ColumnGroupTable } from "../elements"
-import { CalendarColumn, CalendarTableColumn, CurrencyFilter, DateFilterOptions } from "../data"
+import { CalendarColumn, CalendarTableColumn, CurrencyFilter, DateFilterOptions, ImportanceFilterOption } from "../data"
 import { applyMixins } from "../utils"
 import { BasePage } from "./BasePage"
 import * as _ from "lodash"
@@ -39,6 +39,11 @@ export class CalendarListPage extends BasePage {
     async setDateFilter(dateFilterOptions: DateFilterOptions) {
         await this.setFilterRadio(this.calendarListHelper.getDateFilter(), dateFilterOptions)
     }
+
+    async setImportanceFilter(importanceFilterOptions: ImportanceFilterOption) {
+       await this.setFilterRadio(this.calendarListHelper.getImportanceFilter(), importanceFilterOptions)
+    }
+
 
     async setCurrenciesFilter(currenciesSet: Set<CurrencyFilter>) {
         this.log.error(`setCurrenciesFilter=${JSON.stringify(currenciesSet)}`)

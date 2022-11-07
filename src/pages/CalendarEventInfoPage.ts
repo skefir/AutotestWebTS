@@ -1,6 +1,6 @@
 import { Page } from "@playwright/test";
 import * as _ from "lodash";
-import { CalendarEventInfoTab, TableEventHistoryColumn } from "../data";
+import { CalendarEventInfoTab, EventHistoryColumn, TableEventHistoryColumn } from "../data";
 import { CalendarEventInfoElements, DataTablePW, TabControl } from "../elements";
 import { applyMixins } from "../utils";
 import { BasePage } from "./BasePage";
@@ -43,14 +43,18 @@ export class CalendarEventInfoPage extends BasePage {
        await this.tabControl.getTab(tab).click()
     }
 
-    public async printHistoryToLog() {
-        // (await this.page.$$("a")).forEach((e)=>e.click())
-        // this.page.click
-        await this.eventHistoryTable.getRowArray().then((prom)=>prom.first().value().then((rw)=>rw[0].textContent().then((tx)=>this.log.error(`row text=${tx}`))))
+    // public async printHistoryToLog() {
+    //     // (await this.page.$$("a")).forEach((e)=>e.click())
+    //     // this.page.click
+    //     await this.eventHistoryTable.getRowArray().then((prom)=>prom.first().value().then((rw)=>rw[0].textContent().then((tx)=>this.log.error(`row text=${tx}`))))
 
-    }   
+    // }   
 
     public async printHistoryStreamLog() {
+        const header = `| ${EventHistoryColumn.DATE.padEnd(25)}             | ` +
+                `${EventHistoryColumn.ACTUAL.padStart(20)}` +
+                `| ${EventHistoryColumn.FORECAST.padStart(20)} ` +
+                `| ${EventHistoryColumn.PREVIOUS.padStart(20)} |`
         await this.eventHistoryTable.getRowStream().then((locArr)=>_.chain(locArr).first().value().textContent().then((tx)=>this.log.error(`row text=${tx}`)))
     }    
 
