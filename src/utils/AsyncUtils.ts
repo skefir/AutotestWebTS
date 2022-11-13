@@ -15,7 +15,3 @@ export function asyncMap<T, O>(arr: T[], asyncFn: (t: T) => Promise<O>): Promise
 export function flatten<T>(arr: T[][]): T[] {
     return ([] as T[]).concat(...arr);
 }
-
-// export function asyncReduce<T, O>(arr: T[], asyncFn: (t: T) => Promise<CollectionChain<O>>): Promise<CollectionChain<O>> {
-//     return Promise.all(arr.map(asyncFn))
-// }
