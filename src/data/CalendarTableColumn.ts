@@ -17,8 +17,6 @@ export class CalendarTableColumn implements DataTableColumn {
         this.column = column
     }
 
-    getTitle(): string {
-        return this.column
-    }
+    getTitle = (): string => `${this.column}`
 }
 

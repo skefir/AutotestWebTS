@@ -1,8 +1,9 @@
 import { Page } from "@playwright/test";
 import * as _ from "lodash";
-import { CalendarEventInfoTab, EventHistoryColumn, EventInfoTab, TableEventHistoryColumn } from "../data";
+import { map, of, mergeMap } from "rxjs";
+import { CalendarEventInfoTab, EventHistoryColumn, TableEventHistoryColumn } from "../data";
 import { CalendarEventInfoElements, DataTablePW, TabControl, DataRow } from "../elements";
-import { applyMixins, asyncMap } from "../utils";
+import { applyMixins } from "../utils";
 import { BasePage } from "./BasePage";
 
 export class CalendarEventInfoHelper {
@@ -14,7 +15,7 @@ export class CalendarEventInfoHelper {
     }
 
 }
-
+7
 export interface CalendarEventInfoHelper extends CalendarEventInfoElements { }
 
 applyMixins(CalendarEventInfoHelper, [CalendarEventInfoElements])
@@ -25,7 +26,9 @@ export class CalendarEventInfoPage extends BasePage {
 
     private readonly tabControl: TabControl<CalendarEventInfoTab>
 
-    private eventHistoryTable: DataTablePW<TableEventHistoryColumn>
+    private eventHistoryTable: DataTablePW
+
+    private  readonly limitDate: Date
 
 
 
@@ -35,11 +38,14 @@ export class CalendarEventInfoPage extends BasePage {
         super(page)
         this.calendarEventInfoHelper = new CalendarEventInfoHelper(page)
         this.tabControl = new TabControl<CalendarEventInfoTab>(this.calendarEventInfoHelper.getEventTabControl())
-        const colSet = new Set<TableEventHistoryColumn>(Object.values(EventHistoryColumn).map((e) =>{ 
-            this.log.error(`constructor CalendarEventInfoPage = ${JSON.stringify(e)}`)
-            return new TableEventHistoryColumn(EventHistoryColumn[e])}))
+        const colArr = Object.values(EventHistoryColumn).map((e) => {
+            return `${e}`
+        })
+        const colSet = new Set<string>(colArr)
         this.eventHistoryTable = new DataTablePW(
             this.calendarEventInfoHelper.getEventHistoryTable(), "event-table-history", colSet)
+        let curDate = new Date();
+        this.limitDate  = new Date(curDate.setFullYear(curDate.getFullYear()-1));    
 
     }
 
@@ -47,8 +53,15 @@ export class CalendarEventInfoPage extends BasePage {
         await this.tabControl.getTab(tab).click()
     }
 
+    private isAfterDate =  (row: DataRow<string>) => {
+        const skey = `${EventHistoryColumn.DATE}`
+        const curDate = new Date(row[skey])
+        // this.log.error(`isAfterDate>>>>> ${skey} +  ${row[skey]} + ${curDate} + ${this.limitDate}`)
+        return curDate>this.limitDate;
+    }
 
-    public async printHistoryStreamLog() {
+    public async printHistoryStreamLogExp() {
+        await this.eventHistoryTable.intiTable()
         const colSet = new Set<TableEventHistoryColumn>()
         colSet.add(new TableEventHistoryColumn(EventHistoryColumn.DATE))
         colSet.add(new TableEventHistoryColumn(EventHistoryColumn.ACTUAL))
@@ -58,18 +71,11 @@ export class CalendarEventInfoPage extends BasePage {
             `${EventHistoryColumn.ACTUAL.padStart(20)}` +
             `| ${EventHistoryColumn.FORECAST.padStart(20)} ` +
             `| ${EventHistoryColumn.PREVIOUS.padStart(20)} |`
-         this.log.info(header)   
-        //  await this.eventHistoryTable.getRowStream().then((locArr)=>_.chain(locArr).first().value().textContent().then((tx)=>this.log.error(`row text=${tx}`)))
-        await this.eventHistoryTable.getRowStream().then((locArr)=>_.chain(locArr).filter((_loc, index) => index < 15).value()
-        .forEach(async rl=> {
-            let colArr = this.eventHistoryTable.extractColumns(rl, colSet)
-            await colArr.reduce(async (ra, ne) => await ra.then(async (dtr)=> { dtr[ne[0]] = await ne[1].textContent(); return dtr}), Promise.resolve({} as DataRow<string>)).then(e=> {
-                this.log.error(`| ${e[EventHistoryColumn.DATE].trim().padEnd(25)}             | ` +
-                   `${e[EventHistoryColumn.ACTUAL].trim().padStart(20)}` +
-                   `| ${e[EventHistoryColumn.FORECAST].trim().padStart(20)} ` +
-                   `| ${e[EventHistoryColumn.PREVIOUS].trim().padStart(20)} |`)
-                }
-            )    
-        }))
+        this.log.info(header)
+        const PREDICATE_KEY = "predicate"
+        await this.eventHistoryTable.getRowStream(this.isAfterDate).then(o=>o.subscribe({next: e=>this.log.error(`| ${e[EventHistoryColumn.DATE].trim().padEnd(25)}             | ` +
+        `${e[EventHistoryColumn.ACTUAL].trim().padStart(20)}` +
+        `| ${e[EventHistoryColumn.FORECAST].trim().padStart(20)} ` +
+        `| ${e[EventHistoryColumn.PREVIOUS].trim().padStart(20)} |`) }))
      }
 }

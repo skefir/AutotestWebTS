@@ -23,17 +23,16 @@ export class CalendarListPage extends BasePage {
 
     protected readonly calendarListHelper: CalendarListHelper
 
-    private calendarMainDataTable: ColumnGroupTable<CalendarTableColumn>
+    private calendarMainDataTable: ColumnGroupTable
 
     constructor(page: Page) {
         super(page)
         this.calendarListHelper = new CalendarListHelper(page)
-        let colSet = new Set<CalendarTableColumn>()
+        let colSet = new Set<string>()
         for (let column in CalendarColumn) {
-            colSet.add(new CalendarTableColumn(CalendarColumn[column]))
+            colSet.add(CalendarColumn[column])
         }
-
-        this.calendarMainDataTable = new ColumnGroupTable<CalendarTableColumn>(this.calendarListHelper.getMainTable(), "ec-table", colSet)
+        this.calendarMainDataTable = new ColumnGroupTable(this.calendarListHelper.getMainTable(), "ec-table", colSet)
     }
 
     async setDateFilter(dateFilterOptions: DateFilterOptions) {
@@ -52,7 +51,7 @@ export class CalendarListPage extends BasePage {
     }
 
     async enterToEventByNumber(eventNumber: number) {
-        await (await this.calendarMainDataTable.getColumn(await this.calendarMainDataTable.getRowByNumber(eventNumber), new CalendarTableColumn(CalendarColumn.EVENT)))
+        await (await this.calendarMainDataTable.getColumn(await this.calendarMainDataTable.getRowByNumber(eventNumber), CalendarColumn.EVENT))
             .locator("a").click()
     }
 

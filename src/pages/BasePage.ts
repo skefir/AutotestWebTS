@@ -76,7 +76,7 @@ export class BasePage {
     }
 
     protected async setFilterOptionCheckbox(filterOptionElement: Locator, value: boolean) {
-        let curVal = await this.isChecked(filterOptionElement)
+        const curVal = await this.isChecked(filterOptionElement)
         this.log.debug(`setFilterOptionCheckbox flag = ${curVal}`)
         if (value != curVal) {
             await this.setFilterOption(filterOptionElement)
